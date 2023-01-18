@@ -1,6 +1,6 @@
 import os
 import sys
-from sqlalchemy import Column, ForeignKey, Integer, String
+from sqlalchemy import Column, ForeignKey, Integer, String, Boolean
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import relationship
 from sqlalchemy import create_engine
@@ -8,26 +8,76 @@ from eralchemy2 import render_er
 
 Base = declarative_base()
 
-class Person(Base):
-    __tablename__ = 'person'
-    # Here we define columns for the table person
-    # Notice that each column is also a normal Python instance attribute.
+class User(Base):
+    __tablename__ = 'user'
     id = Column(Integer, primary_key=True)
-    name = Column(String(250), nullable=False)
+    user_name = Column(String(250), nullable=False, unique=True)
+    first_name = Column(String(250), nullable=False)
+    last_name = Column(String(250), nullable=False)
+    email = Column(String(250), nullable=False, unique=True)
+    active = Column(Boolean, default=True)
 
-class Address(Base):
-    __tablename__ = 'address'
-    # Here we define columns for the table address.
-    # Notice that each column is also a normal Python instance attribute.
+
+class Characters(Base):
+    __tablename__ = 'characters'
     id = Column(Integer, primary_key=True)
-    street_name = Column(String(250))
-    street_number = Column(String(250))
-    post_code = Column(String(250), nullable=False)
-    person_id = Column(Integer, ForeignKey('person.id'))
-    person = relationship(Person)
+    name = Column(String(250), nullable=False, unique=True)
+    status = Column(Boolean, default=True)
+    species = Column(String(250), nullable=False)
+    gender = Column(String(250), nullable=False)
 
-    def to_dict(self):
-        return {}
+class Character_user(Base):
+    __tablename__ = 'character_user'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    user = relationship(User)
+    character_id = Column(Integer, ForeignKey('characters.id'))
+    character = relationship(Characters)  
+
+class Locations(Base):
+    __tablename__ = 'locations'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(250), nullable=False, unique=True)
+    type = Column(String(250), nullable=False)
+    dimension = Column(String(250), nullable=False)
+    resident = Column(Integer, nullable=False)
+
+class Locations_user(Base):
+    __tablename__ = 'locations_user'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    user = relationship(User)
+    locations_id = Column(Integer, ForeignKey('locations.id'))
+    locations = relationship(Locations)  
+
+class Episodes(Base):
+    __tablename__ = 'episodes'
+    id = Column(Integer, primary_key=True)
+    name = Column(String(250), nullable=False, unique=True)
+    air_date = Column(String(250), nullable=False)
+    episode = Column(String(250), nullable=False)
+    characters = Column(Integer, nullable=False)
+
+class Episodes_user(Base):
+    __tablename__ = 'episodes_user'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    user = relationship(User)
+    episode_id = Column(Integer, ForeignKey('episodes.id'))
+    episode = relationship(Episodes)
+ 
+class Favorites(Base):
+    __tablename__ = 'favorites'
+    id = Column(Integer, primary_key=True)
+    user_id = Column(Integer, ForeignKey('user.id'))
+    favorites = relationship("Favorites", backref="user", lazy=True) 
+    character_id = Column(Integer, ForeignKey('characters.id'))
+    character = relationship(Characters)
+    location_id = Column(Integer, ForeignKey('locations.id'))
+    location = relationship(Locations)
+    episode_id = Column(Integer, ForeignKey('episodes.id'))
+    episode = relationship(Episodes)
+
 
 ## Draw from SQLAlchemy base
 render_er(Base, 'diagram.png')
